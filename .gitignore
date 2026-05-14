@@ -1,0 +1,106 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# --- Virtual environments ---
+.venv/
+venv/
+ENV/
+env/
+.env
+.env.*
+
+# --- Jupyter / notebooks ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- IDE & OS ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- ML / TTS: checkpoints & exports ---
+ckpts/
+runs/
+wandb/
+lightning_logs/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.onnx
+*.pb
+*.tflite
+*.mlmodel
+
+# --- Audio (usually large) ---
+*.wav
+*.flac
+*.mp3
+*.m4a
+*.aac
+*.ogg
+*.opus
+*.wma
+*.aiff
+*.aif
+
+# --- NumPy / serialized features (often GB-scale) ---
+*.npy
+*.npz
+
+# --- Archives (often datasets) ---
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# --- Local data & manifest paths (keep code-only repo) ---
+# Uncomment if entire data dir should stay off GitHub:
+# data/
+
+# --- Hydra / temporary ---
+outputs/
+multirun/
+third_party/
+data/
+# --- Logs ---
+*.log
+logs/
