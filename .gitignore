@@ -93,6 +93,7 @@ lightning_logs/
 *.7z
 
 # --- Local data & manifest paths (keep code-only repo) ---
+# pre_data/
 # Uncomment if entire data dir should stay off GitHub:
 # data/
 

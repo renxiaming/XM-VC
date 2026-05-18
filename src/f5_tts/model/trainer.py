@@ -230,7 +230,13 @@ class Trainer:
                 if key in checkpoint["model_state_dict"]:
                     del checkpoint["model_state_dict"][key]
 
-            self.accelerator.unwrap_model(self.model).load_state_dict(checkpoint["model_state_dict"])
+            missing, unexpected = self.accelerator.unwrap_model(self.model).load_state_dict(
+                checkpoint["model_state_dict"], strict=False
+            )
+            if self.is_main and (missing or unexpected):
+                print(
+                    f"load_checkpoint(strict=False): missing_keys={len(missing)}, unexpected_keys={len(unexpected)}"
+                )
             self.accelerator.unwrap_model(self.optimizer).load_state_dict(checkpoint["optimizer_state_dict"])
             if self.scheduler:
                 self.scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
@@ -241,7 +247,13 @@ class Trainer:
                 for k, v in checkpoint["ema_model_state_dict"].items()
                 if k not in ["initted", "update", "step"]
             }
-            self.accelerator.unwrap_model(self.model).load_state_dict(checkpoint["model_state_dict"])
+            missing, unexpected = self.accelerator.unwrap_model(self.model).load_state_dict(
+                checkpoint["model_state_dict"], strict=False
+            )
+            if self.is_main and (missing or unexpected):
+                print(
+                    f"load_checkpoint(strict=False, ema branch): missing_keys={len(missing)}, unexpected_keys={len(unexpected)}"
+                )
             update = 0
 
         del checkpoint

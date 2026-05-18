@@ -28,7 +28,7 @@ from f5_tts.model.modules import (
 
 # Text embedding
 
-替换成token
+# 替换成token
 class TextEmbedding(nn.Module):
     def __init__(self, text_num_embeds, text_dim, conv_layers=0, conv_mult=2):
         super().__init__()
@@ -70,7 +70,7 @@ class TextEmbedding(nn.Module):
 
 
 # noised input audio and context mixing embedding 
-改为token mixing embedding
+# 改为token mixing embedding
 
 
 class InputEmbedding(nn.Module):
@@ -173,7 +173,7 @@ class DiT(nn.Module):
         if self.long_skip_connection is not None:
             residual = x
 
-        修改transformer_blocks，使用transformer_block_mask 、transformer_backward_mask 、transformer_forward_blocks
+        # 修改transformer_blocks，使用transformer_block_mask 、transformer_backward_mask 、transformer_forward_blocks
         for block in self.transformer_blocks:
             if self.checkpoint_activations:
                 x = torch.utils.checkpoint.checkpoint(self.ckpt_wrapper(block), x, t, mask, rope)

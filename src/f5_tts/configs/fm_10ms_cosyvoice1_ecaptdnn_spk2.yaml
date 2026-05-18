@@ -3,12 +3,14 @@ hydra:
     dir: ckpts/${model.name}_${model.mel_spec.mel_spec_type}${model.tokenizer}/${now:%Y-%m-%d}/${now:%H-%M-%S}
     
 datasets:
-  name: 4wh_filtered_dataset.txt #4wtrain_dataset_online_s3token1_filter.txt  # dataset name
+  name: 4wh_filtered_dataset_remapped.txt #4wtrain_dataset_online_s3token1_filter.txt  # dataset name
   dataset_type: OnlineDataset
   batch_size_per_gpu: 4500  # 8 GPUs, 8 * 38400 = 307200
   batch_size_type: frame  # "frame" or "sample"
   max_samples: 64 # max sequences per batch if use frame-wise batch_size. we set 32 for small models, 64 for base models
-  num_workers: 8
+  num_workers: 1
+  # num_workers: 8
+
 
 optim:
   epochs: 50

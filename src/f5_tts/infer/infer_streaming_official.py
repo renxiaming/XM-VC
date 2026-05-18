@@ -39,10 +39,12 @@ import onnxruntime
 # 设置默认路径和配置
 # DEFAULT_CONFIG_PATH = "/home/node57_data/hkxie/4O/F5-TTS/src/f5_tts/configs/fm_10ms_cosyvoice1.yaml"
 DEFAULT_CONFIG_PATH = "/home/node60_tmpdata/hkxie/workspace/streamingfm/src/f5_tts/configs/fm_10ms_cosyvoice1_ecaptdnn_spk2.yaml"
-DEFAULT_VOCODER_CONFIG = "/home/node57_data/hkxie/4O/F5-TTS/src/third_party/hifigan/config_streamfm10ms.json"
-DEFAULT_VOCODER_CKPT = "/home/node57_data/hkxie/4O/F5-TTS/src/third_party/hifigan/ckpt_hifigan/g_00400000"
+# DEFAULT_VOCODER_CONFIG = "/home/node57_data/hkxie/4O/F5-TTS/src/third_party/hifigan/config_streamfm10ms.json"
+# DEFAULT_VOCODER_CKPT = "/home/node57_data/hkxie/4O/F5-TTS/src/third_party/hifigan/ckpt_hifigan/g_00400000"
+DEFAULT_VOCODER_CONFIG = "/home/node60_tmpdata/xmren/streamingfm/src/third_party/hifigan/config_streamfm10ms.json"
+DEFAULT_VOCODER_CKPT = "/home/node60_tmpdata/xmren/streamingfm/src/third_party/hifigan/ckpt_hifigan/g_00400000"
 # DEFAULT_CKPT_FILE = "/home/node57_data/hkxie/4O/F5-TTS/ckpts/F5TTS_fm_10ms_dspgancosyvoice1/model_300000.pt"
-DEFAULT_CKPT_FILE = "/home/node60_tmpdata/hkxie/workspace/streamingfm/ckpts/F5TTS_fm_10ms_ecapa_tdnn_spk_hifigancosyvoice1/model_300000.pt"
+DEFAULT_CKPT_FILE = "/home/node60_tmpdata/xmren/streamingfm/ckpts/F5TTS_fm_10ms_ecapa_tdnn_spk_hifigancosyvoice1/model_300000.pt"
 # DEFAULT_CKPT_FILE = "/home/node60_tmpdata/hkxie/workspace/streamingfm/ckpts/F5TTS_fm_10ms_ecapa_tdnn_spk_hifigancosyvoice1/model_300000.pt"
 
 class AttrDict(dict):
@@ -55,7 +57,8 @@ def _extract_spk_embedding(speech): #campplus_model str查看一下
     option = onnxruntime.SessionOptions()
     option.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
     option.intra_op_num_threads = 1
-    campplus_session = onnxruntime.InferenceSession("/home/node57_data/hkxie/4O/F5-TTS/src/f5_tts/model/campplus.onnx", sess_options=option, providers=["CPUExecutionProvider"])
+    # campplus_session = onnxruntime.InferenceSession("/home/node57_data/hkxie/4O/F5-TTS/src/f5_tts/model/campplus.onnx", sess_options=option, providers=["CPUExecutionProvider"])
+    campplus_session = onnxruntime.InferenceSession("/home/node60_tmpdata/xmren/streamingfm/model/campplus.onnx", sess_options=option, providers=["CPUExecutionProvider"])
     feat = kaldi.fbank(speech,
                         num_mel_bins=80,
                         dither=0,
@@ -164,6 +167,7 @@ def run_inference(wav_path, token_path,output_path ,ema_model, generator, device
 def process_folder(wav_folder, token_dir ,ema_model, generator, output_path ,device):
     wav_files = [f for f in os.listdir(wav_folder) if f.endswith('.wav')]  # 获取文件夹中的所有 wav 文件
     npy_files = [f for f in os.listdir(token_dir) if f.endswith('.npy')]
+    # import pdb;pdb.set_trace()
     for wav_file in wav_files:
         wav_path = os.path.join(wav_folder, wav_file)
         count = 0
@@ -228,7 +232,14 @@ python infer_streaming_official.py \
     --wav_path /home/node57_data/hkxie/4O/streaming_fm/testset/origin_wav \
     --token_path /home/node57_data/hkxie/4O/streaming_fm/testset/s3token1 \
     --output_path /home/node57_data/hkxie/4O/streaming_fm/testset/output_200k
-
+    
+    
+python infer_streaming_official.py \
+    --wav_path /home/node60_tmpdata/xmren/streamingfm/xmren_inferout/test_data/ref_wav \
+    --token_path /home/node60_tmpdata/xmren/streamingfm/xmren_inferout/test_data/s1token \
+    --output_path /home/node60_tmpdata/xmren/streamingfm/xmren_inferout/demo1
+    
+    
 python infer_streaming_official.py \
     --wav_path /home/node57_data/hkxie/4O/F5-TTS/src/f5_tts/infer/cosyvoice2_token_test \
     --token_path /home/node60_tmpdata/hkxie/workspace/streamingfm/test \

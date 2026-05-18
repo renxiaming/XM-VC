@@ -22,7 +22,7 @@ import onnxruntime
 option = onnxruntime.SessionOptions()
 option.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
 option.intra_op_num_threads = 1
-campplus_session = onnxruntime.InferenceSession("/home/node57_data/hkxie/4O/F5-TTS/src/f5_tts/model/campplus.onnx", sess_options=option, providers=["CPUExecutionProvider"])
+campplus_session = onnxruntime.InferenceSession("/home/node60_tmpdata/xmren/streamingfm/model/campplus.onnx", sess_options=option, providers=["CPUExecutionProvider"])
 
 # cosyvoice spk pretrain extracted_embedding 
 
@@ -61,25 +61,33 @@ class OnlineDataset(Dataset):
             }
             
     def load_data(self, file_path):
-        """ 从 txt 文件加载数据 """
+        """ 从 txt 文件加载数据；audio / token 路径不存在则跳过该条 """
         data = []
-        dataset_path = os.path.join("/home/node60_tmpdata/hkxie/workspace/streamingfm/data",file_path)
-        with open(os.path.join("/home/node60_tmpdata/hkxie/workspace/streamingfm/data",file_path), 'r', encoding='utf-8') as f:
-            # print(f"dataset路径为= {dataset_path}")
+        skipped_missing = 0
+        txt_path = os.path.join("/home/node60_tmpdata/xmren/streamingfm/data", file_path)
+        with open(txt_path, "r", encoding="utf-8") as f:
             for line in f:
-                parts = line.strip().split(" ")  # 使用制表符分割
-                # print(parts)
+                parts = line.strip().split(" ")
                 if len(parts) < 4:
                     print(f"数据不足4列")
-                    continue  # 确保有足够的列
+                    continue
                 utt_id, audio_path, text_token_path, duration = parts
-                duration = float(duration)  # 确保 duration 是 float 类型
-                data.append({
-                    "utt_id": utt_id,
-                    "audio_path": audio_path,
-                    "text_token_path": text_token_path,
-                    "duration": duration
-                })
+                # if not (os.path.isfile(audio_path) and os.path.isfile(text_token_path)):
+                #     skipped_missing += 1
+                #     continue
+                duration = float(duration)
+                data.append(
+                    {
+                        "utt_id": utt_id,
+                        "audio_path": audio_path,
+                        "text_token_path": text_token_path,
+                        "duration": duration,
+                    }
+                )
+        # if skipped_missing:
+        #     print(
+        #         f"OnlineDataset.load_data: 跳过 {skipped_missing} 条（audio 或 token 路径不存在），保留 {len(data)} 条"
+        #     )
         return data
 
     def _extract_spk_embedding(self,speech): #campplus_model str查看一下
@@ -102,17 +110,21 @@ class OnlineDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-        while True:
+        n = len(self.data)
+        if n == 0:
+            raise RuntimeError("OnlineDataset is empty")
+        for _ in range(n):
             row = self.data[index]
             audio_path = row["audio_path"]
             text_path = row["text_token_path"]
             duration = row["duration"]
-            
-            # 过滤时长范围
-            if 0.0 <= duration <= 60.0: 
-                break  # 满足要求，继续处理
-
-            index = (index + 1) % len(self.data)  # 防止超出索引
+            if 0.0 <= duration <= 60.0:
+                break
+            index = (index + 1) % n
+        else:
+            raise RuntimeError(
+                "OnlineDataset: no sample with duration in [0, 60]s（路径已在 load_data 校验）"
+            )
 
         if self.preprocessed_mel:
             mel_spec = torch.tensor(row["mel_spec"])
@@ -138,9 +150,14 @@ class OnlineDataset(Dataset):
             )
             mel_spec = mel_spec.squeeze(0)  # '1 d t -> d t' #[80,seq_t]
         
-        # 读取文本 token
-        text_token = np.load(text_path)  # 加载 .hubert_code.npy
-        text_token = torch.tensor(text_token, dtype=torch.float32)  # 转为 PyTorch tensor
+        # 读取文本 token：remap 脚本多为 int32 [T]；若为 float [T,C] 则视为连续条件
+        text_token = torch.as_tensor(np.load(text_path))
+        if text_token.ndim == 1:
+            text_token = text_token.long()
+        elif text_token.ndim == 2 and text_token.dtype in (torch.float32, torch.float64, torch.float16):
+            text_token = text_token.float()
+        elif text_token.ndim == 2:
+            text_token = text_token.long()
         
         token_seq_len = len(text_token);upsample_rate=4
         mel_seq_len = mel_spec.shape[1];target_frames=500  # 获取当前 token 的总帧数 卡到8s，batch2
@@ -410,10 +427,11 @@ def collate_fn(batch):
     mel_specs = torch.stack(padded_mel_specs)
 
     text = [item["text"] for item in batch]
-    #pad_sequence 已经返回一个堆叠的张量，因此 stack 是多余的 #0填充？asr_emb
-    text = pad_sequence(text, padding_value=0, batch_first=True)
-    # text = torch.stack(text)
-    text_lengths = torch.LongTensor([len(item) for item in text])
+    text_lengths = torch.LongTensor([t.shape[0] for t in text])
+    if text[0].ndim == 1:
+        text = pad_sequence(text, padding_value=-1, batch_first=True)
+    else:
+        text = pad_sequence(text, padding_value=0.0, batch_first=True)
     
     spk_emb = [item["spk_emb"] for item in batch]
     

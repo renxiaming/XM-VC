@@ -4,7 +4,7 @@ import os
 from importlib.resources import files
 import sys
 import hydra
-sys.path.append("/home/node60_tmpdata/hkxie/workspace/streamingfm/src")
+sys.path.append("/home/node60_tmpdata/xmren/streamingfm/src")
 
 # print(os.getcwd())
 from f5_tts.model import CFM, DiT, Trainer, UNetT

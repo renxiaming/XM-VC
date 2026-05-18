@@ -74,17 +74,24 @@ class RotaryEmbedding(nn.Module):
     def forward(self, t):
         max_pos = t.max() + 1
 
-        freqs = torch.einsum('i , j -> i j', t.type_as(self.inv_freq), self.inv_freq) / self.interpolation_factor
-        freqs = torch.stack((freqs, freqs), dim = -1)
-        freqs = rearrange(freqs, '... d r -> ... (d r)')
+        # Match x_transformers.RotaryEmbedding: freqs must be [batch, seq, dim] for apply_rotary_pos_emb.
+        if t.ndim == 1:
+            t = rearrange(t, "n -> 1 n")
+
+        freqs = (
+            torch.einsum("b i , j -> b i j", t.type_as(self.inv_freq), self.inv_freq)
+            / self.interpolation_factor
+        )
+        freqs = torch.stack((freqs, freqs), dim=-1)
+        freqs = rearrange(freqs, "... d r -> ... (d r)")
 
         if not exists(self.scale):
             return freqs, 1.
 
         power = (t - (max_pos // 2)) / self.scale_base
-        scale = self.scale ** rearrange(power, 'n -> n 1')
-        scale = torch.stack((scale, scale), dim = -1)
-        scale = rearrange(scale, '... d r -> ... (d r)')
+        scale = self.scale ** rearrange(power, "... n -> ... n 1")
+        scale = torch.stack((scale, scale), dim=-1)
+        scale = rearrange(scale, "... d r -> ... (d r)")
 
         return freqs, scale
 
@@ -169,7 +176,6 @@ class TextEmbedding(nn.Module):
         # 2. 嵌入映射 将 token 映射到向量空间 形状从 [batch, seq_len] 转为 [batch, seq_len, text_dim]
         # x = self.text_embed(text)  # [batch, token_len, embed_dim]
         x = text #已经是asr_emb了
-    
         # 3. 对齐操作,
         # 需要修改对其操作，因为mel_embed已经有了，因此现在需要对token的seq进行pad对齐，0pad token到max length
         x = self.align_length(x, seq_len)  # [batch, target_seq_len, embed_dim]
@@ -379,6 +385,7 @@ class DiT(nn.Module):
         
         # 生成时间嵌入 t
         t = self.time_embed(time)
+        
         
         # 将文本 token 经过 TextEmbedding 处理，得到文本嵌入 ，我可以在这里forward进行asr btfsemb的提取，修改
         text_embed = self.text_embed(text, seq_len, drop_text=drop_text)

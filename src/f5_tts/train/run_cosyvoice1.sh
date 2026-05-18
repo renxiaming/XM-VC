@@ -6,8 +6,8 @@
 # source /home/environment2/hkxie/anaconda3/bin/activate /home/environment2/hkxie/anaconda3/envs/F5-TTS
 # source /home/work_nfs19/hkxie/environment/anaconda3/bin/activate /home/work_nfs19/hkxie/environment/anaconda3/envs/f5-tts
 # source /home/work_nfs19/hkxie/environment/anaconda3/bin/activate /home/work_nfs19/hkxie/environment/anaconda3/envs/F5-TTS
-source /home/work_nfs19/hkxie/environment/anaconda3/bin/activate /home/work_nfs19/hkxie/environment/anaconda3/envs/covomix
-
+# source /home/work_nfs19/hkxie/environment/anaconda3/bin/activate /home/work_nfs19/hkxie/environment/anaconda3/envs/covomix
+source /home/work_nfs16/xmren/miniconda3/bin/activate /home/work_nfs16/xmren/miniconda3/envs/vc
 # /home/node57_data/hkxie/4O/streaming_fm/data
 
 # ----------------------------
@@ -23,7 +23,7 @@ cd "$PROJECT_ROOT" || { echo "Failed to enter project root"; exit 1; }
 # Step 3: 验证当前路径
 # ----------------------------
 echo "当前工作目录：$(pwd)"
-echo "预期根目录：/home/work_nfs14/code/hkxie/TTS/F5-TTS"  # 请核对路径是否一致
+# echo "预期根目录：/home/work_nfs14/code/hkxie/TTS/F5-TTS"  # 请核对路径是否一致
 export NCCL_P2P_DISABLE=1
 export NCCL_IB_DISABLE=1
 
