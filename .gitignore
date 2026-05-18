@@ -101,6 +101,7 @@ lightning_logs/
 outputs/
 multirun/
 third_party/
+pre_data/extract/tmp_split/*.scp
 data/
 # --- Logs ---
 *.log
